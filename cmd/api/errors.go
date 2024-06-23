@@ -7,8 +7,8 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"jstrohm.org/miles/internal/response"
-	"jstrohm.org/miles/internal/validator"
+	"github.com/hoyle1974/miles/internal/response"
+	"github.com/hoyle1974/miles/internal/validator"
 )
 
 func (app *application) reportServerError(r *http.Request, err error) {

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"jstrohm.org/miles/internal/response"
+	"github.com/hoyle1974/miles/internal/response"
 
 	"github.com/tomasen/realip"
 )

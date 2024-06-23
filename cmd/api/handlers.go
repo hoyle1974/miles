@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"jstrohm.org/miles/internal/response"
+	"github.com/hoyle1974/miles/internal/response"
 )
 
 func (app *application) status(w http.ResponseWriter, r *http.Request) {

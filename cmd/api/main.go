@@ -8,8 +8,8 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"jstrohm.org/miles/internal/env"
-	"jstrohm.org/miles/internal/version"
+	"github.com/hoyle1974/miles/internal/env"
+	"github.com/hoyle1974/miles/internal/version"
 
 	"github.com/lmittmann/tint"
 )
