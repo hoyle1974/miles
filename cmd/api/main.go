@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/hoyle1974/miles/internal/miles"
 	"log/slog"
 	"os"
 	"runtime/debug"
@@ -55,6 +56,9 @@ func run(logger *slog.Logger) error {
 		config: cfg,
 		logger: logger,
 	}
+
+	logger.Info("-- Bootstrap --")
+	miles.Bootstrap(logger)
 
 	return app.serveHTTP()
 }
