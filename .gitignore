@@ -1,3 +1,5 @@
 bin/
 tmp/
 build-errors.log
+cache.bin
+frontier.bin
