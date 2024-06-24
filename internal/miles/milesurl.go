@@ -1,6 +1,7 @@
 package miles
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"sort"
@@ -9,6 +10,27 @@ import (
 
 type MilesURL struct {
 	URL url.URL
+}
+
+func (m MilesURL) MarshalBinary() ([]byte, error) {
+	// A simple encoding: plain text.
+	var b bytes.Buffer
+	temp := m.URL.String()
+	fmt.Fprintln(&b, temp)
+	return b.Bytes(), nil
+}
+
+// UnmarshalBinary modifies the receiver so it must take a pointer receiver.
+func (m *MilesURL) UnmarshalBinary(data []byte) error {
+	// A simple encoding: plain text.
+	b := bytes.NewBuffer(data)
+	temp := ""
+	_, err := fmt.Fscanln(b, &temp)
+
+	a, _ := NewURL(temp)
+	m.URL = a.URL
+
+	return err
 }
 
 func (m MilesURL) String() string {
