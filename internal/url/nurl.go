@@ -27,7 +27,7 @@ func (m *Nurl) UnmarshalBinary(data []byte) error {
 	temp := ""
 	_, err := fmt.Fscanln(b, &temp)
 
-	a, _ := NewURL(temp)
+	a, _ := NewURL(temp, "", "")
 	m.URL = a.URL
 
 	return err
@@ -39,6 +39,10 @@ func (m Nurl) String() string {
 
 func (m Nurl) Hostname() string {
 	return m.URL.Hostname()
+}
+
+func (m Nurl) Scheme() string {
+	return m.URL.Scheme
 }
 
 func (m Nurl) Path() string {

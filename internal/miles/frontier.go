@@ -2,6 +2,7 @@ package miles
 
 import (
 	"github.com/hoyle1974/miles/internal/url"
+	"strings"
 	"sync"
 )
 
@@ -60,6 +61,18 @@ type frontierImpl struct {
 //	return nil
 //}
 
+// GetFirstTwoHostnameParts extracts the first two parts of a hostname
+func GetFirstTwoHostnameParts(hostname string) string {
+	parts := strings.Split(hostname, ".")
+	if len(parts) <= 1 {
+		return hostname
+	} else if len(parts) == 2 {
+		return strings.Join(parts, ".")
+	} else {
+		return strings.Join(parts[len(parts)-2:], ".")
+	}
+}
+
 func (f *frontierImpl) Sizes() (int, int) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
@@ -94,11 +107,12 @@ func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]url.Nurl, error) {
 
 	for _, url := range f.URLS {
 		if len(ret) < maxSize {
-			_, ok := hosts[url.Hostname()]
+			hn := GetFirstTwoHostnameParts(url.Hostname())
+			_, ok := hosts[hn]
 			if !ok {
 				// Add to the list
 				ret = append(ret, url)
-				hosts[url.Hostname()] = true
+				hosts[hn] = true
 			} else {
 				// Skip this one
 				newList = append(newList, url)

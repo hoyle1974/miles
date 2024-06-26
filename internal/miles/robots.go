@@ -16,7 +16,7 @@ type implRobots struct {
 }
 
 func (r *implRobots) IsValid(URL url.Nurl) bool {
-	robotURL, _ := url.NewURL("http://" + URL.Hostname() + "/robots.txt")
+	robotURL, _ := url.NewURL("http://"+URL.Hostname()+"/robots.txt", "http", URL.Hostname())
 
 	doc, err := r.docStore.GetDoc(robotURL)
 	if err != nil {

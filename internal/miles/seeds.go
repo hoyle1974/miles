@@ -9,12 +9,12 @@ import "github.com/hoyle1974/miles/internal/url"
 // sports, food), content type, etc.
 
 func GetSeeds() []url.Nurl {
-	url1, _ := url.NewURL("http://www.stackoverflow.com")
-	//url2, _ := url.NewURL("http://www.google.com")
-	url3, _ := url.NewURL("http://www.cnn.com")
+	//url1, _ := url.NewURL("http://www.stackoverflow.com", "", "")
+	//url2, _ := url.NewURL("http://www.google.com","","")
+	url3, _ := url.NewURL("http://www.cnn.com", "", "")
 
 	return []url.Nurl{
-		url1, url3,
+		url3,
 		//		url1, url2, url3,
 	}
 }
