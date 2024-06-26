@@ -44,6 +44,7 @@ func (ds DocStore) GetDoc(nurl url.Nurl) (Doc, error) {
 	if err != nil {
 		return Doc{}, err
 	}
+
 	return doc, nil
 }
 
