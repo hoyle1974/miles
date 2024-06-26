@@ -2,10 +2,11 @@ package miles
 
 import (
 	"errors"
+	"github.com/hoyle1974/miles/internal/url"
 	"strings"
 )
 
-func getFileExtensionFromUrl(rawUrl MilesURL) (string, error) {
+func getFileExtensionFromUrl(rawUrl url.Nurl) (string, error) {
 	pos := strings.LastIndex(rawUrl.Path(), ".")
 	if pos == -1 {
 		return "", errors.New("couldn't find a period to indicate a file extension")
@@ -14,7 +15,7 @@ func getFileExtensionFromUrl(rawUrl MilesURL) (string, error) {
 }
 
 // IsImageURL checks if a URL points to a file with a common image extension.
-func isExtensionValid(urlString MilesURL) bool {
+func isExtensionValid(urlString url.Nurl) bool {
 
 	extension, err := getFileExtensionFromUrl(urlString)
 	if err != nil {
@@ -34,7 +35,7 @@ func isExtensionValid(urlString MilesURL) bool {
 }
 
 // FilterImageURLs returns a slice of URLs that point to image files.
-func Filter(urls []MilesURL) []MilesURL {
+func Filter(urls []url.Nurl) []url.Nurl {
 	validURL := urls[:0]
 	for _, urlString := range urls {
 		if isExtensionValid(urlString) {

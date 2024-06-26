@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/hoyle1974/miles/internal/url"
 	"os"
 	"sync"
 )
@@ -11,15 +12,15 @@ import (
 // URL Frontier: Component that explores URLs to be downloaded is called the URL Frontier. One way to crawl the web is to use a breadth-first traversal, starting from the seed URLs. We can implement this by using the URL Frontier as a first-in first-out (FIFO) queue, where URLs will be processed in the order that they were added to the queue (starting with the seed URLs).
 
 type Frontier interface {
-	GetNextURLBatch(maxSize int) ([]MilesURL, error)
-	AddURLS(urls []MilesURL)
+	GetNextURLBatch(maxSize int) ([]url.Nurl, error)
+	AddURLS(urls []url.Nurl)
 	Sizes() (int, int)
 	Load() error
 	Save() error
 }
 
 type frontierImpl struct {
-	URLS    []MilesURL
+	URLS    []url.Nurl
 	Domains DomainTree
 	lock    sync.Mutex
 }
@@ -70,7 +71,7 @@ func (f *frontierImpl) Sizes() (int, int) {
 	return len(f.URLS), f.Domains.GetSize()
 }
 
-func (f *frontierImpl) AddURLS(urls []MilesURL) {
+func (f *frontierImpl) AddURLS(urls []url.Nurl) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
@@ -86,13 +87,13 @@ func (f *frontierImpl) AddURLS(urls []MilesURL) {
 	}
 }
 
-func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]MilesURL, error) {
+func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]url.Nurl, error) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
 	if len(f.URLS) <= maxSize {
 		temp := f.URLS
-		f.URLS = []MilesURL{}
+		f.URLS = []url.Nurl{}
 		return temp, nil
 	}
 

@@ -1,20 +1,21 @@
 package miles
 
 import (
+	"github.com/hoyle1974/miles/internal/url"
 	"github.com/jimsmart/grobotstxt"
 	"sync"
 )
 
 type Robots interface {
-	IsValid(url MilesURL) bool
+	IsValid(url url.Nurl) bool
 }
 
 type implRobots struct {
-	robots map[MilesURL][]byte
+	robots map[url.Nurl][]byte
 }
 
-func (r *implRobots) IsValid(url MilesURL) bool {
-	robotURL, _ := NewURL("http://" + url.Hostname() + "/robots.txt")
+func (r *implRobots) IsValid(url url.Nurl) bool {
+	robotURL, _ := url.NewURL("http://" + url.Hostname() + "/robots.txt")
 
 	robotTxt, ok := r.robots[robotURL]
 	if !ok {
@@ -30,7 +31,7 @@ var robots Robots = nil
 
 func newRobots() Robots {
 	return &implRobots{
-		robots: map[MilesURL][]byte{},
+		robots: map[url.Nurl][]byte{},
 	}
 }
 

@@ -3,13 +3,14 @@ package miles
 import (
 	"fmt"
 	"github.com/hoyle1974/miles/internal/store"
+	"github.com/hoyle1974/miles/internal/url"
 	"io/ioutil"
 	"net/http"
 )
 
 // HTML Fetcher: HTML fetcher component is responsible for downloading web pages corresponding to a given URL provided by the URL Frontier. It does this by using a network protocol like HTTP or HTTPS. In simple words, HTML fetcher retrieves the actual web page content that needs to be analyzed and stored.
 
-func FetchURL(URL MilesURL) ([]byte, error) {
+func FetchURL(URL url.Nurl) ([]byte, error) {
 	data, err := store.GetKVStore().Get(URL.String())
 	if data != nil {
 		return data, nil

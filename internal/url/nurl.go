@@ -1,4 +1,4 @@
-package miles
+package url
 
 import (
 	"bytes"
@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-type MilesURL struct {
+type Nurl struct {
 	URL url.URL
 }
 
-func (m MilesURL) MarshalBinary() ([]byte, error) {
+func (m Nurl) MarshalBinary() ([]byte, error) {
 	// A simple encoding: plain text.
 	var b bytes.Buffer
 	temp := m.URL.String()
@@ -21,7 +21,7 @@ func (m MilesURL) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary modifies the receiver so it must take a pointer receiver.
-func (m *MilesURL) UnmarshalBinary(data []byte) error {
+func (m *Nurl) UnmarshalBinary(data []byte) error {
 	// A simple encoding: plain text.
 	b := bytes.NewBuffer(data)
 	temp := ""
@@ -33,29 +33,29 @@ func (m *MilesURL) UnmarshalBinary(data []byte) error {
 	return err
 }
 
-func (m MilesURL) String() string {
+func (m Nurl) String() string {
 	return m.URL.String()
 }
 
-func (m MilesURL) Hostname() string {
+func (m Nurl) Hostname() string {
 	return m.URL.Hostname()
 }
 
-func (m MilesURL) Path() string {
+func (m Nurl) Path() string {
 	return m.URL.Path
 }
 
-func (m MilesURL) CopyHostname(from MilesURL) MilesURL {
+func (m Nurl) CopyHostname(from Nurl) Nurl {
 	m.URL.Scheme = from.URL.Scheme
 	m.URL.Host = from.URL.Host
 	return m
 }
 
-func NewURL(urlString string) (MilesURL, error) {
+func NewURL(urlString string) (Nurl, error) {
 
 	parsedURL, err := url.Parse(urlString)
 	if err != nil {
-		return MilesURL{}, err
+		return Nurl{}, err
 	}
 
 	// Lowercase scheme and host
@@ -99,5 +99,5 @@ func NewURL(urlString string) (MilesURL, error) {
 	}
 	parsedURL.RawQuery = query.Encode()
 
-	return MilesURL{URL: *parsedURL}, nil
+	return Nurl{URL: *parsedURL}, nil
 }

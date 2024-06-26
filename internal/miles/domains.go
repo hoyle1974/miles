@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/detailyang/domaintree-go"
+	"github.com/hoyle1974/miles/internal/url"
 	"io"
 	"sync"
 )
@@ -45,7 +46,7 @@ func (d DomainTree) GetSize() int {
 	return d.Size
 }
 
-func (d DomainTree) AddDomain(url MilesURL) {
+func (d DomainTree) AddDomain(url url.Nurl) {
 	host := url.Hostname()
 
 	d.lock.Lock()

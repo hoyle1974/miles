@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/hoyle1974/miles/internal/url"
 	"os"
 	"sync"
 )
@@ -11,8 +12,8 @@ import (
 // Caching: To improve the efficiency of web crawler, we can use a urlCache to store recently processed URLs. This allows us to quickly look for a URL in the urlCache rather than crawling the web to find it again. The type of urlCache will depend on the specific use case for the web crawler.
 
 type Cache interface {
-	GetURLInfo(url MilesURL) Info
-	UpdateURLInfo(url MilesURL) (Info, Info, int)
+	GetURLInfo(url url.Nurl) Info
+	UpdateURLInfo(url url.Nurl) (Info, Info, int)
 	Save()
 	Load()
 }
@@ -23,12 +24,12 @@ type Info struct {
 
 type cacheImpl struct {
 	lock      sync.Mutex
-	UrlCache  map[MilesURL]Info
+	UrlCache  map[url.Nurl]Info
 	HostCache map[string]Info
 	count     int
 }
 
-func (c *cacheImpl) GetURLInfo(url MilesURL) Info {
+func (c *cacheImpl) GetURLInfo(url url.Nurl) Info {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -37,7 +38,7 @@ func (c *cacheImpl) GetURLInfo(url MilesURL) Info {
 	return info
 }
 
-func (c *cacheImpl) UpdateURLInfo(url MilesURL) (Info, Info, int) {
+func (c *cacheImpl) UpdateURLInfo(url url.Nurl) (Info, Info, int) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -65,7 +66,7 @@ var cache Cache = nil
 
 func newCache() Cache {
 	c := &cacheImpl{
-		UrlCache:  map[MilesURL]Info{},
+		UrlCache:  map[url.Nurl]Info{},
 		HostCache: map[string]Info{},
 	}
 
