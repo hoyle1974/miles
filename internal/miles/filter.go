@@ -35,12 +35,10 @@ func isExtensionValid(urlString MilesURL) bool {
 
 // FilterImageURLs returns a slice of URLs that point to image files.
 func Filter(urls []MilesURL) []MilesURL {
-	var validURL []MilesURL
+	validURL := urls[:0]
 	for _, urlString := range urls {
 		if isExtensionValid(urlString) {
 			validURL = append(validURL, urlString)
-		} else {
-			//fmt.Println("		Filter Out: " + urlString)
 		}
 	}
 	return validURL

@@ -1,6 +1,10 @@
 package miles
 
 import (
+	"encoding/gob"
+	"errors"
+	"fmt"
+	"os"
 	"sync"
 )
 
@@ -9,6 +13,8 @@ import (
 type Cache interface {
 	GetURLInfo(url MilesURL) Info
 	UpdateURLInfo(url MilesURL) (Info, Info, int)
+	Save()
+	Load()
 }
 
 type Info struct {
@@ -17,15 +23,16 @@ type Info struct {
 
 type cacheImpl struct {
 	lock      sync.Mutex
-	urlCache  map[MilesURL]Info
-	hostCache map[string]Info
+	UrlCache  map[MilesURL]Info
+	HostCache map[string]Info
+	count     int
 }
 
 func (c *cacheImpl) GetURLInfo(url MilesURL) Info {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	info, _ := c.urlCache[url]
+	info, _ := c.UrlCache[url]
 
 	return info
 }
@@ -34,27 +41,37 @@ func (c *cacheImpl) UpdateURLInfo(url MilesURL) (Info, Info, int) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	info, _ := c.urlCache[url]
+	info, _ := c.UrlCache[url]
 	info.Hits++
-	c.urlCache[url] = info
+	c.UrlCache[url] = info
 
 	var hostInfo Info
 	hostname := url.Hostname()
-	hostInfo, _ = c.hostCache[hostname]
+	hostInfo, _ = c.HostCache[hostname]
 	hostInfo.Hits++
-	c.hostCache[hostname] = hostInfo
+	c.HostCache[hostname] = hostInfo
 
-	return info, hostInfo, len(c.hostCache)
+	c.count++
+	if c.count > 16 {
+		c.count = 0
+		c.Save()
+	}
+
+	return info, hostInfo, len(c.HostCache)
 }
 
 var cacheLock sync.Mutex
 var cache Cache = nil
 
 func newCache() Cache {
-	return &cacheImpl{
-		urlCache:  map[MilesURL]Info{},
-		hostCache: map[string]Info{},
+	c := &cacheImpl{
+		UrlCache:  map[MilesURL]Info{},
+		HostCache: map[string]Info{},
 	}
+
+	c.Load()
+
+	return c
 }
 
 func GetCache() Cache {
@@ -67,4 +84,48 @@ func GetCache() Cache {
 	cache = newCache()
 
 	return cache
+}
+
+func (f *cacheImpl) Load() {
+	file, err := os.Open("cache.bin")
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return
+		}
+		return
+	}
+	defer file.Close()
+
+	decoder := gob.NewDecoder(file)
+	err = decoder.Decode(f)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("---- Hosts")
+	for key, _ := range f.HostCache {
+		fmt.Println(key)
+	}
+	fmt.Println("---- Hosts")
+
+	return
+}
+
+func (f *cacheImpl) Save() {
+	file, err := os.Create("cache.bin.tmp")
+	if err != nil {
+		fmt.Println("Error Creating ", err)
+		return
+	}
+	defer file.Close()
+
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(f)
+	if err != nil {
+		fmt.Println("Error Encoding ", err)
+		return
+	}
+	os.Remove("cache.bin")
+	os.Rename("cache.bin.tmp", "cache.bin")
+	return
 }

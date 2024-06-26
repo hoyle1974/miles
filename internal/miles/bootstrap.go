@@ -8,7 +8,6 @@ import (
 )
 
 func Bootstrap(logger *slog.Logger) {
-
 	pool := pond.New(16, 1000)
 
 	logger.Info("Bootstrapping . . .")
@@ -18,6 +17,7 @@ func Bootstrap(logger *slog.Logger) {
 	for true {
 		size, domains := frontier.Sizes()
 		if size == 0 {
+			logger.Warn(("Frontier is now empty"))
 			break
 		}
 		logger.Info(fmt.Sprintf("--------- Frontier Size: %d   Domains: %d", size, domains))
@@ -29,24 +29,26 @@ func Bootstrap(logger *slog.Logger) {
 		cache := GetCache()
 		for _, url := range batch {
 			pool.Submit(func() {
-				//logger.Info("Working with: ", url)
-				//info, hostInfo, hostCount :=
+				logger.Info("Working with", "url", url.String())
 				cache.UpdateURLInfo(url)
-				//info := urlCache.GetURLInfo(url)
 
 				if GetRobots().IsValid(url) {
-					//logger.Info(fmt.Sprintf("	Seeds: %s  Hits: %d  Host Hits: %d  Host Count: %d", url, info.Hits, hostInfo.Hits, hostCount))
 					data, err := FetchURL(url)
 					if err != nil {
+						logger.Error("Error Fetching URL", "err", err)
 						return
 					}
+					logger.Debug("Data", "size", len(data))
 
 					urls, err := ExtractURLs(url, data)
 					if err != nil {
 						return
 					}
+					logger.Debug("	URLS", "count", len(urls))
 
 					frontier.AddURLS(Filter(DeduplicateURLs(urls)))
+				} else {
+					logger.Warn("Robot Invalid", "url", url)
 				}
 			})
 		}
@@ -55,6 +57,7 @@ func Bootstrap(logger *slog.Logger) {
 
 	}
 
+	logger.Info("Stopping and waiting . . .")
 	pool.StopAndWait()
 
 }

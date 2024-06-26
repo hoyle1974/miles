@@ -7,9 +7,11 @@ package miles
 // sports, food), content type, etc.
 
 func GetSeeds() []MilesURL {
-	url, _ := NewURL("http://www.stackoverflow.com")
+	url1, _ := NewURL("http://www.stackoverflow.com")
+	url2, _ := NewURL("http://www.google.com")
+	url3, _ := NewURL("http://www.cnn.com")
 
 	return []MilesURL{
-		url,
+		url1, url2, url3,
 	}
 }

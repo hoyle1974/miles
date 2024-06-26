@@ -1,5 +1,8 @@
 bin/
 tmp/
+badgerdb/
 build-errors.log
 cache.bin
+cache.bin.tmp
 frontier.bin
+frontier.bin.tmp

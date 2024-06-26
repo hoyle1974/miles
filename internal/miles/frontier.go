@@ -3,6 +3,7 @@ package miles
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"os"
 	"sync"
 )
@@ -13,56 +14,60 @@ type Frontier interface {
 	GetNextURLBatch(maxSize int) ([]MilesURL, error)
 	AddURLS(urls []MilesURL)
 	Sizes() (int, int)
-	Load()
-	Save()
+	Load() error
+	Save() error
 }
 
 type frontierImpl struct {
 	URLS    []MilesURL
-	Domains map[string]interface{}
+	Domains DomainTree
 	lock    sync.Mutex
 }
 
-func (f *frontierImpl) Load() {
+func (f *frontierImpl) Load() error {
 	file, err := os.Open("frontier.bin")
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return
+			return nil
 		}
-		return
+		return err
 	}
 	defer file.Close()
 
 	decoder := gob.NewDecoder(file)
 	err = decoder.Decode(f)
 	if err != nil {
-		return
+		return err
 	}
-	return
+
+	return nil
 }
 
-func (f *frontierImpl) Save() {
+func (f *frontierImpl) Save() error {
 	file, err := os.Create("frontier.bin.tmp")
 	if err != nil {
-		return
+		return err
 	}
 	defer file.Close()
 
 	encoder := gob.NewEncoder(file)
 	err = encoder.Encode(f)
 	if err != nil {
-		return
+		return err
 	}
 	os.Remove("frontier.bin")
-	os.Rename("frontier.bin.tmp", "frontier.bin")
-	return
+	err = os.Rename("frontier.bin.tmp", "frontier.bin")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *frontierImpl) Sizes() (int, int) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
-	return len(f.URLS), len(f.Domains)
+	return len(f.URLS), f.Domains.GetSize()
 }
 
 func (f *frontierImpl) AddURLS(urls []MilesURL) {
@@ -72,10 +77,13 @@ func (f *frontierImpl) AddURLS(urls []MilesURL) {
 	f.URLS = append(f.URLS, urls...)
 
 	for _, url := range f.URLS {
-		f.Domains[url.Hostname()] = true
+		f.Domains.AddDomain(url)
 	}
 
-	f.Save()
+	err := f.Save()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]MilesURL, error) {
@@ -97,10 +105,15 @@ func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]MilesURL, error) {
 func GetFrontier() Frontier {
 	f := &frontierImpl{
 		URLS:    GetSeeds(),
-		Domains: map[string]interface{}{},
+		Domains: NewDomainTree(),
 	}
 
-	f.Load()
+	err := f.Load()
+	if err != nil {
+		panic(err)
+	}
+	temp := f.URLS[0].String()
+	fmt.Println(temp)
 
 	return f
 }
