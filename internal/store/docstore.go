@@ -54,7 +54,11 @@ func (ds DocStore) GetDoc(nurl url.Nurl) (Doc, error) {
 
 func (ds DocStore) Store(nurl url.Nurl, data []byte, err error) error {
 	key := nurl.String()
-	doc := Doc{Data: data, Error: err.Error()}
+	es := ""
+	if err != nil {
+		es = err.Error()
+	}
+	doc := Doc{Data: data, Error: es}
 
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)

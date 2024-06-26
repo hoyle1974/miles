@@ -49,9 +49,13 @@ func Bootstrap(logger *slog.Logger) {
 						return
 					}
 					var data []byte
-					if err != badger.ErrKeyNotFound && doc.GetError() == nil {
-						log = "** CACHED ** " + log
-						data = doc.GetData()
+					if err != badger.ErrKeyNotFound {
+						if doc.GetError() == nil {
+							log = "** CACHED ** " + log
+							data = doc.GetData()
+						} else {
+							logger.Warn("Cached Error for URL", "url", url, "err", err)
+						}
 					} else {
 						data, err := FetchURL(url)
 						if err != nil {
@@ -59,7 +63,7 @@ func Bootstrap(logger *slog.Logger) {
 							logger.Error("Error Fetching URL", "err", err)
 							return
 						}
-						log = log + fmt.Sprintf("Data Size = %d", len(data))
+						log = log + fmt.Sprintf("Data Size = %d ", len(data))
 						err = docStore.Store(url, data, err)
 						if err != nil {
 							logger.Error("Error Storing URL Data", "err", err)
