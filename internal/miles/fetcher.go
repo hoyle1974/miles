@@ -14,7 +14,7 @@ var docStore = store.NewDocStore()
 func FetchURL(URL url.Nurl) ([]byte, error) {
 
 	doc, err := docStore.GetDoc(URL)
-	if doc != nil {
+	if err != nil {
 		return doc.GetData(), doc.GetError()
 	}
 

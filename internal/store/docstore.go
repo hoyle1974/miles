@@ -28,12 +28,12 @@ func NewDocStore() DocStore {
 	return DocStore{kvStore: NewKVStore("./badgerdb")}
 }
 
-func (ds DocStore) GetDoc(nurl url.Nurl) Doc {
+func (ds DocStore) GetDoc(nurl url.Nurl) (Doc, error) {
 	key := nurl.String()
 
 	data, err := ds.kvStore.Get(key)
 	if err != nil {
-		return Doc{Error: err}
+		return Doc{}, err
 	}
 
 	buf := bytes.NewBuffer(data)
@@ -42,9 +42,9 @@ func (ds DocStore) GetDoc(nurl url.Nurl) Doc {
 	var doc Doc
 	err = dec.Decode(&doc)
 	if err != nil {
-		return Doc{Error: err}
+		return Doc{}, err
 	}
-	return doc
+	return doc, nil
 }
 
 func (ds DocStore) Store(nurl url.Nurl, data []byte, err error) error {
