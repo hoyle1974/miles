@@ -51,7 +51,7 @@ func (m Nurl) CopyHostname(from Nurl) Nurl {
 	return m
 }
 
-func NewURL(urlString string) (Nurl, error) {
+func NewURL(urlString string, defaultScheme string, defaultHost string) (Nurl, error) {
 
 	parsedURL, err := url.Parse(urlString)
 	if err != nil {
@@ -61,6 +61,13 @@ func NewURL(urlString string) (Nurl, error) {
 	// Lowercase scheme and host
 	parsedURL.Scheme = strings.ToLower(parsedURL.Scheme)
 	parsedURL.Host = strings.ToLower(parsedURL.Host)
+
+	if parsedURL.Scheme == "" {
+		parsedURL.Scheme = defaultScheme
+	}
+	if parsedURL.Host == "" {
+		parsedURL.Host = defaultHost
+	}
 
 	// Remove default port (if present)
 	host := parsedURL.Hostname()

@@ -54,17 +54,18 @@ func Bootstrap(logger *slog.Logger) {
 							log = "** CACHED ** " + log
 							data = doc.GetData()
 						} else {
-							logger.Warn("Cached Error for URL", "url", url, "err", err)
+							logger.Warn("Cached Error for URL", "url", url, "err", doc.GetError())
 						}
 					} else {
-						data, err := FetchURL(url)
+						var resp int
+						data, resp, err = FetchURL(url)
 						if err != nil {
-							_ = docStore.Store(url, data, err)
-							logger.Error("Error Fetching URL", "err", err)
+							_ = docStore.Store(url, data, resp, err)
+							logger.Error("Error Fetching URL", "url", url, "err", err)
 							return
 						}
 						log = log + fmt.Sprintf("Data Size = %d ", len(data))
-						err = docStore.Store(url, data, err)
+						err = docStore.Store(url, data, resp, err)
 						if err != nil {
 							logger.Error("Error Storing URL Data", "err", err)
 							return
