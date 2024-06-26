@@ -62,6 +62,7 @@ func (c *cacheImpl) UpdateURLInfo(url url.Nurl) (Info, Info, int) {
 }
 
 var cacheLock sync.Mutex
+
 var cache Cache = nil
 
 func newCache() Cache {

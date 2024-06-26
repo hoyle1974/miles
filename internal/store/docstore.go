@@ -3,12 +3,13 @@ package store
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"github.com/hoyle1974/miles/internal/url"
 )
 
 type Doc struct {
 	Data  []byte
-	Error error
+	Error string
 }
 
 func (d Doc) GetData() []byte {
@@ -16,7 +17,10 @@ func (d Doc) GetData() []byte {
 }
 
 func (d Doc) GetError() error {
-	return d.Error
+	if d.Error == "" {
+		return nil
+	}
+	return fmt.Errorf("%s", d.Error)
 }
 
 type DocStore struct {
@@ -50,13 +54,13 @@ func (ds DocStore) GetDoc(nurl url.Nurl) (Doc, error) {
 
 func (ds DocStore) Store(nurl url.Nurl, data []byte, err error) error {
 	key := nurl.String()
-	doc := Doc{Data: data, Error: err}
+	doc := Doc{Data: data, Error: err.Error()}
 
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err = enc.Encode(doc)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	return ds.kvStore.Put(key, buf.Bytes())

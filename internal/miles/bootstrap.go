@@ -3,14 +3,15 @@ package miles
 import (
 	"fmt"
 	"github.com/alitto/pond"
+	"github.com/dgraph-io/badger/v4"
 	"github.com/hoyle1974/miles/internal/store"
-	"github.com/hoyle1974/miles/internal/url"
 	"log/slog"
 	"time"
 )
 
 func Bootstrap(logger *slog.Logger) {
-	pool := pond.New(1, 1000)
+	batchSize := 64
+	pool := pond.New(batchSize, 1000)
 
 	logger.Info("Bootstrapping . . .")
 
@@ -18,58 +19,66 @@ func Bootstrap(logger *slog.Logger) {
 	frontier := GetFrontier()
 	robots := GetRobots(docStore)
 
-	url, err := url.NewURL("www.google.com")
-	if err != nil {
-		panic(err)
-	}
-	doc, err := docStore.GetDoc(url)
-	if err != nil {
-		panic(err)
-	}
-	if doc.GetError() != nil {
-		panic(doc.GetError())
-	}
-	fmt.Printf("DocSize: %d\n", len(doc.GetData()))
-
 	for true {
 		// Display some stats about the frontier
 		size, domains := frontier.Sizes()
 		if size == 0 {
 			logger.Warn(("Frontier is now empty"))
-			break
+			time.Sleep(time.Second)
+			continue
 		}
 		logger.Info(fmt.Sprintf("--------- Frontier Size: %d   Domains: %d", size, domains))
 
 		// Get a batch to process
-		batch, err := frontier.GetNextURLBatch(10)
+		batch, err := frontier.GetNextURLBatch(batchSize)
 		if err != nil {
 			panic(err)
 		}
+		if len(batch) != batchSize {
+			logger.Warn(fmt.Sprintf("Asked for %d but got %d", batchSize, len(batch)))
+		}
 
-		//cache := GetCache()
 		for _, url := range batch {
 			pool.Submit(func() {
-				logger.Info("Working with", "url", url.String())
-				cache.UpdateURLInfo(url)
+				log := fmt.Sprintf("Working with(%s) ", url)
 
 				if robots.IsValid(url) {
-					data, err := FetchURL(url)
-					if err != nil {
-						logger.Error("Error Fetching URL", "err", err)
+					doc, err := docStore.GetDoc(url)
+					if err != nil && err != badger.ErrKeyNotFound {
+						logger.Error("Error Fetching URL from Docstore", "err", err)
 						return
 					}
-					logger.Debug("Data", "size", len(data))
+					var data []byte
+					if err != badger.ErrKeyNotFound && doc.GetError() == nil {
+						log = "** CACHED ** " + log
+						data = doc.GetData()
+					} else {
+						data, err := FetchURL(url)
+						if err != nil {
+							_ = docStore.Store(url, data, err)
+							logger.Error("Error Fetching URL", "err", err)
+							return
+						}
+						log = log + fmt.Sprintf("Data Size = %d", len(data))
+						err = docStore.Store(url, data, err)
+						if err != nil {
+							logger.Error("Error Storing URL Data", "err", err)
+							return
+						}
+					}
 
 					urls, err := ExtractURLs(url, data)
 					if err != nil {
+						logger.Error("Error Extracing URLS", "err", err)
 						return
 					}
-					logger.Debug("	URLS", "count", len(urls))
+					log = log + fmt.Sprintf("URLS=%d ", len(urls))
 
 					frontier.AddURLS(Filter(DeduplicateURLs(urls)))
 				} else {
-					logger.Warn("Robot Invalid", "url", url)
+					log = log + "Robot Invalid "
 				}
+				logger.Info(log)
 			})
 		}
 
