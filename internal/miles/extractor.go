@@ -6,6 +6,7 @@ import (
 	"github.com/hoyle1974/miles/internal/url"
 	"golang.org/x/net/html"
 	"strings"
+	"unicode"
 )
 
 /*
@@ -32,6 +33,15 @@ func extractText(buffer []byte) (string, error) {
 }
 */
 
+func removeUnprintable(text string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsGraphic(r) || unicode.IsSpace(r) {
+			return r
+		}
+		return -1 // Replace with an empty rune or another placeholder
+	}, text)
+}
+
 func extractText(htmlBytes []byte) (string, error) {
 	var textBuffer bytes.Buffer
 	tokenizer := html.NewTokenizer(bytes.NewReader(htmlBytes))
@@ -46,10 +56,10 @@ func extractText(htmlBytes []byte) (string, error) {
 			}
 			return "", fmt.Errorf("error parsing HTML: %w", tokenizer.Err())
 		case html.TextToken:
-			text := strings.TrimSpace(string(tokenizer.Text()))
+			text := removeUnprintable(strings.TrimSpace(string(tokenizer.Text())))
 			if text != "" {
 				textBuffer.WriteString(text)
-				textBuffer.WriteRune(' ') // Add space between text nodes
+				textBuffer.WriteRune('\n') // Add space between text nodes
 			}
 		case html.StartTagToken, html.EndTagToken:
 			name, _ := tokenizer.TagName()
@@ -92,30 +102,15 @@ func extractURLs(htmlData []byte) ([]string, error) {
 
 // ExtractURLs finds all URLs within an HTML byte array.
 func ExtractURLs(currentURL url.Nurl, data []byte) ([]url.Nurl, error) {
-	/*
-		// Regex pattern for finding URLs (can be improved for specific needs)
-		urlRegex := regexp.MustCompile(`(?i)(href|src)=["'](?P<url>[^"\s]+)["']`)
-
-		// Find all matches of the regex pattern
-		matches := urlRegex.FindAllSubmatch(data, -1)
-
-		// Extract URLs from the matches
-		urls := make([]url.Nurl, len(matches))
-		for i, match := range matches {
-			m, _ := url.NewURL(string(match[2]), currentURL.Scheme(), currentURL.Hostname())
-			urls[i] = m // Access captured group (index 2)
-		}
-	*/
-
 	surls, err := extractURLs(data)
 	if err != nil {
 		return []url.Nurl{}, nil
 	}
 
-	text, err := extractText(data)
-	if err == nil {
-		fmt.Println("----------------------: " + currentURL.String() + "\n" + text + "------------------\n")
-	}
+	//text, err := extractText(data)
+	//if err == nil {
+	//	fmt.Println("----------------------: " + currentURL.String() + "\n" + text + "------------------\n")
+	//}
 
 	var urls []url.Nurl
 

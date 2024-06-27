@@ -8,9 +8,10 @@ import (
 )
 
 type Doc struct {
-	Data     []byte
-	Response int
-	Error    string
+	Data        []byte
+	ContentType string
+	Response    int
+	Error       string
 }
 
 func (d Doc) GetResponse() int {
@@ -57,13 +58,13 @@ func (ds DocStore) GetDoc(nurl url.Nurl) (Doc, error) {
 	return doc, nil
 }
 
-func (ds DocStore) Store(nurl url.Nurl, data []byte, response int, err error) error {
+func (ds DocStore) Store(nurl url.Nurl, data []byte, contenttype string, response int, err error) error {
 	key := nurl.String()
 	es := ""
 	if err != nil {
 		es = err.Error()
 	}
-	doc := Doc{Data: data, Response: response, Error: es}
+	doc := Doc{Data: data, ContentType: contenttype, Response: response, Error: es}
 
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)

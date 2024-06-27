@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var ext = map[string]bool{}
+
 func getFileExtensionFromUrl(rawUrl url.Nurl) (string, error) {
 	pos := strings.LastIndex(rawUrl.Path(), ".")
 	if pos == -1 {
@@ -18,13 +20,24 @@ func getFileExtensionFromUrl(rawUrl url.Nurl) (string, error) {
 func isExtensionValid(urlString url.Nurl) bool {
 
 	extension, err := getFileExtensionFromUrl(urlString)
+
+	//s := len(ext)
+	//ext[extension] = true
+	//if len(ext) != s {
+	//	fmt.Printf("---------------------- extensions")
+	//	for k, _ := range ext {
+	//		fmt.Printf("%s\n", k)
+	//	}
+	//	fmt.Printf("---------------------- extensions")
+	//}
+
 	if err != nil {
 		return true
 	}
 	if extension == "" {
 		return true
 	}
-	validExtensions := []string{"jpg", "jpeg", "png", "gif", "bmp", "js", "svg", "ico", "xml", "css"}
+	validExtensions := []string{"pdf", "jpg", "jpeg", "png", "gif", "bmp", "js", "svg", "ico", "xml", "css"}
 
 	for _, validExt := range validExtensions {
 		if extension == validExt {

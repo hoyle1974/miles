@@ -6,12 +6,13 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/hoyle1974/miles/internal/store"
 	"log/slog"
+	"strings"
 	"time"
 )
 
 func Bootstrap(logger *slog.Logger) {
 	batchSize := 64
-	pool := pond.New(batchSize, 1000)
+	pool := pond.New(batchSize, batchSize*2)
 
 	logger.Info("Bootstrapping . . .")
 
@@ -57,15 +58,28 @@ func Bootstrap(logger *slog.Logger) {
 							logger.Warn("Cached Error for URL", "url", url, "err", doc.GetError())
 						}
 					} else {
-						var resp int
-						data, resp, err = FetchURL(url)
+						var responseCode int
+						var contentType = "text"
+
+						responseCode, headers, err := GetHeaders(url)
+						ct, ok := headers["Content-Type"]
+						if ok {
+							contentType = ct[0]
+						}
+						if !strings.Contains(contentType, "text") && contentType != "" {
+							logger.Debug("Skipping URL", "url", url, "contentType", contentType)
+							_ = docStore.Store(url, nil, contentType, responseCode, nil)
+							return // Skip this url
+						}
+
+						data, contentType, responseCode, err = FetchURL(url)
 						if err != nil {
-							_ = docStore.Store(url, data, resp, err)
+							_ = docStore.Store(url, data, contentType, responseCode, err)
 							logger.Error("Error Fetching URL", "url", url, "err", err)
 							return
 						}
 						log = log + fmt.Sprintf("Data Size = %d ", len(data))
-						err = docStore.Store(url, data, resp, err)
+						err = docStore.Store(url, data, contentType, responseCode, err)
 						if err != nil {
 							logger.Error("Error Storing URL Data", "err", err)
 							return
