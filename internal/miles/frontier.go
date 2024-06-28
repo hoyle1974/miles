@@ -27,7 +27,7 @@ func (f *frontierImpl) Load() error {
 	f.URLS = []url.Nurl{}
 	err := f.FrontierStore.IterateAllKeys(func(key string) {
 		n, e := url.NewURL(key, "", "")
-		if e != nil {
+		if e == nil {
 			f.URLS = append(f.URLS, n)
 		}
 	})
@@ -103,6 +103,13 @@ func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]url.Nurl, error) {
 	}
 
 	f.URLS = newList
+
+	for _, url := range f.URLS {
+		err := f.FrontierStore.Del(url.String())
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	return ret, nil
 }
