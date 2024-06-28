@@ -1,6 +1,7 @@
 package miles
 
 import (
+	"github.com/hoyle1974/miles/internal/store"
 	"github.com/hoyle1974/miles/internal/url"
 	"strings"
 	"sync"
@@ -12,54 +13,34 @@ type Frontier interface {
 	GetNextURLBatch(maxSize int) ([]url.Nurl, error)
 	AddURLS(urls []url.Nurl)
 	Sizes() (int, int)
-	//Load() error
-	//Save() error
 }
 
 type frontierImpl struct {
-	URLS    []url.Nurl
-	Domains DomainTree
-	lock    sync.Mutex
+	URLS          []url.Nurl
+	Domains       DomainTree
+	lock          sync.Mutex
+	FrontierStore store.KVStore
 }
 
-//func (f *frontierImpl) Load() error {
-//	file, err := os.Open("frontier.bin")
-//	if err != nil {
-//		if errors.Is(err, os.ErrNotExist) {
-//			return nil
-//		}
-//		return err
-//	}
-//	defer file.Close()
-//
-//	decoder := gob.NewDecoder(file)
-//	err = decoder.Decode(f)
-//	if err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
-//
-//func (f *frontierImpl) Save() error {
-//	file, err := os.Create("frontier.bin.tmp")
-//	if err != nil {
-//		return err
-//	}
-//	defer file.Close()
-//
-//	encoder := gob.NewEncoder(file)
-//	err = encoder.Encode(f)
-//	if err != nil {
-//		return err
-//	}
-//	os.Remove("frontier.bin")
-//	err = os.Rename("frontier.bin.tmp", "frontier.bin")
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
+func (f *frontierImpl) Load() error {
+
+	f.URLS = []url.Nurl{}
+	err := f.FrontierStore.IterateAllKeys(func(key string) {
+		n, e := url.NewURL(key, "", "")
+		if e != nil {
+			f.URLS = append(f.URLS, n)
+		}
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(f.URLS) == 0 {
+		f.URLS = GetSeeds()
+	}
+
+	return nil
+}
 
 // GetFirstTwoHostnameParts extracts the first two parts of a hostname
 func GetFirstTwoHostnameParts(hostname string) string {
@@ -88,12 +69,11 @@ func (f *frontierImpl) AddURLS(urls []url.Nurl) {
 
 	for _, url := range f.URLS {
 		f.Domains.AddDomain(url)
+		err := f.FrontierStore.Put(url.String(), []byte{})
+		if err != nil {
+			panic(err)
+		}
 	}
-
-	//err := f.Save()
-	//if err != nil {
-	//	panic(err)
-	//}
 }
 
 func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]url.Nurl, error) {
@@ -127,18 +107,17 @@ func (f *frontierImpl) GetNextURLBatch(maxSize int) ([]url.Nurl, error) {
 	return ret, nil
 }
 
-func GetFrontier() Frontier {
+func NewFrontier() Frontier {
 	f := &frontierImpl{
-		URLS:    GetSeeds(),
-		Domains: NewDomainTree(),
+		URLS:          GetSeeds(),
+		Domains:       NewDomainTree(),
+		FrontierStore: store.NewKVStore("frontierdb"),
 	}
 
-	//err := f.Load()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//temp := f.URLS[0].String()
-	//fmt.Println(temp)
+	err := f.Load()
+	if err != nil {
+		panic(err)
+	}
 
 	return f
 }

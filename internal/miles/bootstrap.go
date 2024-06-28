@@ -11,13 +11,13 @@ import (
 )
 
 func Bootstrap(logger *slog.Logger) {
-	batchSize := 64
+	batchSize := 256
 	pool := pond.New(batchSize, batchSize*2)
 
 	logger.Info("Bootstrapping . . .")
 
 	docStore := store.NewDocStore()
-	frontier := GetFrontier()
+	frontier := NewFrontier()
 	robots := GetRobots(docStore)
 
 	for true {
