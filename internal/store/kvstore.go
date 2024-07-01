@@ -10,7 +10,7 @@ type KVStore struct {
 
 func NewKVStore(dirname string) KVStore {
 
-	var db, err = badger.Open(badger.DefaultOptions(dirname))
+	var db, err = badger.Open(badger.DefaultOptions("").WithInMemory(true))
 	if err != nil {
 		panic(err)
 	}

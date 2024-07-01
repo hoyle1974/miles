@@ -15,7 +15,7 @@ type DomainTree struct {
 	Size int
 }
 
-func (m DomainTree) MarshalBinary() ([]byte, error) {
+func (m *DomainTree) MarshalBinary() ([]byte, error) {
 	// A simple encoding: plain text.
 	var b bytes.Buffer
 	m.DT.Walk(func(key string, value interface{}) {
@@ -42,11 +42,11 @@ func (m *DomainTree) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-func (d DomainTree) GetSize() int {
+func (d *DomainTree) GetSize() int {
 	return d.Size
 }
 
-func (d DomainTree) AddDomain(url url.Nurl) {
+func (d *DomainTree) AddDomain(url url.Nurl) {
 	host := url.Hostname()
 
 	d.lock.Lock()

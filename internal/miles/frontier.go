@@ -1,10 +1,11 @@
 package miles
 
 import (
-	"github.com/hoyle1974/miles/internal/store"
-	"github.com/hoyle1974/miles/internal/url"
 	"strings"
 	"sync"
+
+	"github.com/hoyle1974/miles/internal/store"
+	"github.com/hoyle1974/miles/internal/url"
 )
 
 // URL Frontier: Component that explores URLs to be downloaded is called the URL Frontier. One way to crawl the web is to use a breadth-first traversal, starting from the seed URLs. We can implement this by using the URL Frontier as a first-in first-out (FIFO) queue, where URLs will be processed in the order that they were added to the queue (starting with the seed URLs).
@@ -13,6 +14,7 @@ type Frontier interface {
 	GetNextURLBatch(maxSize int) ([]url.Nurl, error)
 	AddURLS(urls []url.Nurl)
 	Sizes() (int, int)
+	Close()
 }
 
 type frontierImpl struct {
@@ -127,4 +129,8 @@ func NewFrontier() Frontier {
 	}
 
 	return f
+}
+
+func (f *frontierImpl) Close() {
+	f.FrontierStore.DB.Close()
 }

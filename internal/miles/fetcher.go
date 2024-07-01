@@ -3,7 +3,7 @@ package miles
 import (
 	"fmt"
 	"github.com/hoyle1974/miles/internal/url"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -55,7 +55,7 @@ func FetchURL(URL url.Nurl) ([]byte, string, int, error) {
 	}
 
 	// Read the response body into a byte buffer
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		err = fmt.Errorf("ReadAll %w", err)
 		return nil, "", resp.StatusCode, err

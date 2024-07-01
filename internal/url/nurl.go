@@ -21,7 +21,7 @@ func (m Nurl) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary modifies the receiver so it must take a pointer receiver.
-func (m *Nurl) UnmarshalBinary(data []byte) error {
+func (m Nurl) UnmarshalBinary(data []byte) error {
 	// A simple encoding: plain text.
 	b := bytes.NewBuffer(data)
 	temp := ""

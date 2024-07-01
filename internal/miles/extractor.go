@@ -3,10 +3,11 @@ package miles
 import (
 	"bytes"
 	"fmt"
-	"github.com/hoyle1974/miles/internal/url"
-	"golang.org/x/net/html"
 	"strings"
 	"unicode"
+
+	"github.com/hoyle1974/miles/internal/url"
+	"golang.org/x/net/html"
 )
 
 /*
@@ -63,7 +64,7 @@ func extractText(htmlBytes []byte) (string, error) {
 			}
 		case html.StartTagToken, html.EndTagToken:
 			name, _ := tokenizer.TagName()
-			if string(name) == "style" || string(name) == "head" || string(name) == "form" || string(name) == "meta" || string(name) == "script" || string(name) == "img" || string(name) == "svg" || string(name) == "style" {
+			if string(name) == "head" || string(name) == "form" || string(name) == "meta" || string(name) == "script" || string(name) == "img" || string(name) == "svg" || string(name) == "style" {
 				// Skip script content
 				for tt := tokenizer.Next(); tt != html.ErrorToken && tt != html.EndTagToken; tt = tokenizer.Next() {
 				}

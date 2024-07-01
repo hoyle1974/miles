@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+
 	"github.com/hoyle1974/miles/internal/url"
 )
 
@@ -35,7 +36,16 @@ type DocStore struct {
 
 func NewDocStore() DocStore {
 	gob.Register(Doc{})
-	return DocStore{kvStore: NewKVStore("./badgerdb")}
+	return DocStore{kvStore: NewKVStore("/Users/jstrohm/code/miles/badgerdb")}
+}
+
+func (ds DocStore) Close() {
+	ds.kvStore.DB.Close()
+}
+
+func (ds DocStore) Del(nurl url.Nurl) error {
+	key := nurl.String()
+	return ds.kvStore.Del(key)
 }
 
 func (ds DocStore) GetDoc(nurl url.Nurl) (Doc, error) {
